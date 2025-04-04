@@ -54,6 +54,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Run the API container
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
         run: |
-          docker-compose exec app uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /path/to/your/project || exit
+            git pull origin main || exit
+            docker-compose down || exit
+            docker-compose up -d --build || exit
+            echo "Deployment successful!"
+          EOF
