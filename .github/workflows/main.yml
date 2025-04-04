@@ -61,6 +61,7 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
+          cd api
           docker-compose -f docker-compose.yml up -d --build
           
       - name: Wait for services to be ready
@@ -83,7 +84,7 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /path/to/your/project || exit
+            cd api || exit
             git pull origin main || exit
             docker-compose down || exit
             docker-compose up -d --build || exit
