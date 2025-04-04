@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql://postgres:admin@localhost/attendance_db"
+DATABASE_URL = "postgresql://postgres:123456@localhost/attendance_db"
 
 # создаем базу данных
 
