@@ -11,3 +11,4 @@ class StudentGroup(Base):
     course = Column(Integer)
 
     schedules = relationship("Schedule", back_populates="group_relation") 
+    students = relationship("Student", back_populates="group_relation") 
