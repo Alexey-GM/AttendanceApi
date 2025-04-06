@@ -17,7 +17,7 @@ def fetch_all_subjects(db: Session):
             "hours": subject.hours
         }
         for subject in subjects
-    ]
+    ] if subjects else []
 
 def fetch_subject_by_id(db: Session, subject_id: int):
     subject = get_subject_by_id(db, subject_id)
@@ -26,7 +26,7 @@ def fetch_subject_by_id(db: Session, subject_id: int):
     return {
         "id": subject.id,
         "name": subject.name,
-        "lecturer": subject.lecturer,
+        "lecturer": subject.lecturer, 
         "hours": subject.hours
     }
 

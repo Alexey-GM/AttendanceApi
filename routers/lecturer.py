@@ -65,7 +65,7 @@ def create_lecturer(lecturer: dict, db: Session = Depends(get_db)):
             "first_name": new_lecturer.first_name,
             "last_name": new_lecturer.last_name,
             "middle_name": new_lecturer.middle_name,
-            "date_birth": new_lecturer.date_birth.isoformat(),  # Преобразование даты в строку
+            "date_birth": new_lecturer.date_birth.isoformat(), 
             "phone": new_lecturer.phone
         }
         
@@ -86,7 +86,7 @@ def update_lecturer(lecturer_id: int, lecturer: dict, db: Session = Depends(get_
             "first_name": updated_lecturer.first_name,
             "last_name": updated_lecturer.last_name,
             "middle_name": updated_lecturer.middle_name,
-            "date_birth": updated_lecturer.date_birth.isoformat(),  # Преобразование даты в строку
+            "date_birth": updated_lecturer.date_birth.isoformat(),
             "phone": updated_lecturer.phone
         }
         
