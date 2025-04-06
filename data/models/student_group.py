@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from data.db.db import Base
 
 class StudentGroup(Base):
@@ -8,3 +9,5 @@ class StudentGroup(Base):
     name = Column(String(50), nullable=False)
     direction = Column(String(100))
     course = Column(Integer)
+
+    schedules = relationship("Schedule", back_populates="group_relation") 

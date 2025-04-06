@@ -11,4 +11,5 @@ class Subject(Base):
     hours = Column(Integer)
 
     lecturer_relation = relationship("Lecturer", back_populates="subjects")
+    schedules = relationship("Schedule", back_populates="subject_relation")
 
