@@ -1,15 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-
-DATABASE_URL = "postgresql://postgres:admin@localhost/attendance_db"
+from pydantic_settings import BaseSettings
 
 # создаем базу данных
+class Settings(BaseSettings):
+    DATABASE_URL: str
 
+    class Config:
+        env_file = ".env" 
 
-
+settings = Settings()
 
 # создаем движок базы данных
-engine = create_engine(DATABASE_URL)
+engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
