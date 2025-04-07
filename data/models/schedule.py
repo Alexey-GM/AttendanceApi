@@ -16,3 +16,4 @@ class Schedule(Base):
 
     subject_relation = relationship("Subject", back_populates="schedules")
     group_relation = relationship("StudentGroup", back_populates="schedules")
+    attendances = relationship("Attendance", back_populates="schedule_relation")

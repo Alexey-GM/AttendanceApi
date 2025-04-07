@@ -5,6 +5,7 @@ from routers import student_group
 from routers import lecturer
 from routers import schedule
 from routers import students
+from routers import attendances
 
 app = FastAPI()
 
@@ -17,3 +18,4 @@ app.include_router(lecturer.router)
 app.include_router(subjects.router)
 app.include_router(schedule.router)
 app.include_router(students.router)
+app.include_router(attendances.router)

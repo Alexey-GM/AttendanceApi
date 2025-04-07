@@ -13,3 +13,4 @@ class Student(Base):
     group_id = Column(Integer, ForeignKey('student_group.id'))
 
     group_relation = relationship("StudentGroup", back_populates="students") 
+    attendances = relationship("Attendance", back_populates="student_relation")
