@@ -7,9 +7,8 @@ class Subject(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    lecturer = Column(Integer, ForeignKey('lecturer.id'))  
+    teacher_id = Column(Integer, ForeignKey('users.id'))  
     hours = Column(Integer)
 
-    lecturer_relation = relationship("Lecturer", back_populates="subjects")
+    teacher_relation = relationship("User", back_populates="subjects")
     schedules = relationship("Schedule", back_populates="subject_relation")
-
