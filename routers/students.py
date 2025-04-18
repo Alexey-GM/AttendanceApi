@@ -41,24 +41,33 @@ router = APIRouter(prefix="/student", tags=["student"])
 
 @router.get("/", response_model=StudentsResponse)
 def read_students(db: Session = Depends(get_db)):
-    logger.info("Fetching all students")
-    students = fetch_all_students(db)
-    return format_response(data=students, message="Students retrieved successfully", code=200)
+    try:
+        logger.info("Fetching all students")
+        students = fetch_all_students(db)
+        return format_response(data=students, message="Students retrieved successfully", code=200)
+    except Exception as e:
+        logger.exception("Error while fetching students")
+        raise HTTPException(status_code=500, detail="Failed to retrieve students")
 
 @router.get("/{student_id}", response_model=StudentResponseWrapper)
 def read_student(student_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Fetching student with ID: {student_id}")
-    student = fetch_student_by_id(db, student_id)
-    
-    if not student:
-        logger.error(f"Student with ID {student_id} not found")
-        raise HTTPException(status_code=404, detail="Student not found")
-    
-    return format_response(data=student, message="Student retrieved successfully", code=200)
+    try:
+        logger.info(f"Fetching student with ID: {student_id}")
+        student = fetch_student_by_id(db, student_id)
+        if not student:
+            logger.warning(f"Student with ID {student_id} not found")
+            raise HTTPException(status_code=404, detail="Student not found")
+        return format_response(data=student, message="Student retrieved successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while fetching student ID {student_id}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve student")
 
 @router.post("/", response_model=StudentResponseWrapper)
 def create_student(student: dict, db: Session = Depends(get_db)):
     try:
+        logger.info("Creating new student")
         new_student = create_new_student(db, student)
         new_student_response = {
             "id": new_student.id,
@@ -70,17 +79,18 @@ def create_student(student: dict, db: Session = Depends(get_db)):
         }
         return format_response(data=new_student_response, message="Student created successfully", code=201)
     except Exception as e:
-        logger.error(f"Error while creating student: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception("Error while creating student")
+        raise HTTPException(status_code=500, detail="Failed to create student")
 
 @router.put("/{student_id}", response_model=StudentResponseWrapper)
 def update_student(student_id: int, student: dict, db: Session = Depends(get_db)):
     try:
+        logger.info(f"Updating student ID: {student_id}")
         updated_student = update_existing_student(db, student_id, student)
         if not updated_student:
-            logger.error(f"Student with ID {student_id} not found for update")
+            logger.warning(f"Student with ID {student_id} not found for update")
             raise HTTPException(status_code=404, detail="Student not found")
-        
+
         updated_student_response = {
             "id": updated_student.id,
             "first_name": updated_student.first_name,
@@ -89,19 +99,27 @@ def update_student(student_id: int, student: dict, db: Session = Depends(get_db)
             "date_birth": updated_student.date_birth.isoformat() if updated_student.date_birth else None,
             "group_id": updated_student.group_id
         }
-        
+
         return format_response(data=updated_student_response, message="Student updated successfully", code=200)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error while updating student with ID {student_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception(f"Error while updating student ID {student_id}")
+        raise HTTPException(status_code=500, detail="Failed to update student")
 
 @router.delete("/{student_id}", response_model=dict)
 def delete_student(student_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Deleting student with ID: {student_id}")
-    deleted_student = delete_existing_student(db, student_id)
-    
-    if not deleted_student:
-        logger.error(f"Student with ID {student_id} not found for deletion")
-        raise HTTPException(status_code=404, detail="Student not found")
-    
-    return format_response(data=None, message="Student deleted successfully", code=200)
+    try:
+        logger.info(f"Deleting student ID: {student_id}")
+        deleted_student = delete_existing_student(db, student_id)
+        if not deleted_student:
+            logger.warning(f"Student with ID {student_id} not found for deletion")
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        return format_response(data=None, message="Student deleted successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while deleting student ID {student_id}")
+        raise HTTPException(status_code=500, detail="Failed to delete student")
+

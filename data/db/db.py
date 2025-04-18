@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from pydantic_settings import BaseSettings
+from sqlalchemy.exc import SQLAlchemyError
 
 # создаем базу данных
 class Settings(BaseSettings):
@@ -8,6 +9,8 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env" 
+
+        extra = "allow"  
 
 settings = Settings()
 
@@ -20,5 +23,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise ValueError(f"Database error: {str(e)}")
     finally:
         db.close()

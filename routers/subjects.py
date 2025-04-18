@@ -39,24 +39,33 @@ router = APIRouter(prefix="/subjects", tags=["subjects"])
 
 @router.get("/", response_model=SubjectsResponse)
 def read_subjects(db: Session = Depends(get_db)):
-    logger.info("Fetching all subjects")
-    subjects = fetch_all_subjects(db)
-    return format_response(data=subjects, message="Subjects retrieved successfully", code=200)
+    try:
+        logger.info("Fetching all subjects")
+        subjects = fetch_all_subjects(db)
+        return format_response(data=subjects, message="Subjects retrieved successfully", code=200)
+    except Exception as e:
+        logger.exception("Error while fetching subjects")
+        raise HTTPException(status_code=500, detail="Failed to retrieve subjects")
 
 @router.get("/{subject_id}", response_model=SubjectResponseWrapper)
 def read_subject(subject_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Fetching subject with ID: {subject_id}")
-    subject = fetch_subject_by_id(db, subject_id)
-    
-    if not subject:
-        logger.error(f"Subject with ID {subject_id} not found")
-        raise HTTPException(status_code=404, detail="Subject not found")
-    
-    return format_response(data=subject, message="Subject retrieved successfully", code=200)
+    try:
+        logger.info(f"Fetching subject with ID: {subject_id}")
+        subject = fetch_subject_by_id(db, subject_id)
+        if not subject:
+            logger.warning(f"Subject with ID {subject_id} not found")
+            raise HTTPException(status_code=404, detail="Subject not found")
+        return format_response(data=subject, message="Subject retrieved successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while fetching subject ID {subject_id}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve subject")
 
 @router.post("/", response_model=SubjectResponseWrapper)
 def create_subject(subject: dict, db: Session = Depends(get_db)):
     try:
+        logger.info("Creating new subject")
         new_subject = create_new_subject(db, subject)
         new_subject_response = {
             "id": new_subject.id,
@@ -66,36 +75,45 @@ def create_subject(subject: dict, db: Session = Depends(get_db)):
         }
         return format_response(data=new_subject_response, message="Subject created successfully", code=201)
     except Exception as e:
-        logger.error(f"Error while creating subject: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception("Error while creating subject")
+        raise HTTPException(status_code=500, detail="Failed to create subject")
 
 @router.put("/{subject_id}", response_model=SubjectResponseWrapper)
 def update_subject(subject_id: int, subject: dict, db: Session = Depends(get_db)):
     try:
+        logger.info(f"Updating subject ID: {subject_id}")
         updated_subject = update_existing_subject(db, subject_id, subject)
         if not updated_subject:
-            logger.error(f"Subject with ID {subject_id} not found for update")
+            logger.warning(f"Subject with ID {subject_id} not found for update")
             raise HTTPException(status_code=404, detail="Subject not found")
-        
+
         updated_subject_response = {
             "id": updated_subject.id,
             "name": updated_subject.name,
             "lecturer": updated_subject.lecturer,
             "hours": updated_subject.hours
         }
-        
+
         return format_response(data=updated_subject_response, message="Subject updated successfully", code=200)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error while updating subject with ID {subject_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception(f"Error while updating subject ID {subject_id}")
+        raise HTTPException(status_code=500, detail="Failed to update subject")
 
 @router.delete("/{subject_id}", response_model=dict)
 def delete_subject(subject_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Deleting subject with ID: {subject_id}")
-    deleted_subject = delete_existing_subject(db, subject_id)
-    
-    if not deleted_subject:
-        logger.error(f"Subject with ID {subject_id} not found for deletion")
-        raise HTTPException(status_code=404, detail="Subject not found")
-    
-    return format_response(data=None, message="Subject deleted successfully", code=200)
+    try:
+        logger.info(f"Deleting subject ID: {subject_id}")
+        deleted_subject = delete_existing_subject(db, subject_id)
+        if not deleted_subject:
+            logger.warning(f"Subject with ID {subject_id} not found for deletion")
+            raise HTTPException(status_code=404, detail="Subject not found")
+
+        return format_response(data=None, message="Subject deleted successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while deleting subject ID {subject_id}")
+        raise HTTPException(status_code=500, detail="Failed to delete subject")
+

@@ -43,24 +43,33 @@ router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 @router.get("/", response_model=SchedulesResponse)
 def read_schedules(db: Session = Depends(get_db)):
-    logger.info("Fetching all schedules")
-    schedules = fetch_all_schedules(db)
-    return format_response(data=schedules, message="Schedules retrieved successfully", code=200)
+    try:
+        logger.info("Fetching all schedules")
+        schedules = fetch_all_schedules(db)
+        return format_response(data=schedules, message="Schedules retrieved successfully", code=200)
+    except Exception as e:
+        logger.exception("Error while fetching schedules")
+        raise HTTPException(status_code=500, detail="Failed to retrieve schedules")
 
 @router.get("/{schedule_id}", response_model=ScheduleResponseWrapper)
 def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Fetching schedule with ID: {schedule_id}")
-    schedule = fetch_schedule_by_id(db, schedule_id)
-    
-    if not schedule:
-        logger.error(f"Schedule with ID {schedule_id} not found")
-        raise HTTPException(status_code=404, detail="Schedule not found")
-    
-    return format_response(data=schedule, message="Schedule retrieved successfully", code=200)
+    try:
+        logger.info(f"Fetching schedule with ID: {schedule_id}")
+        schedule = fetch_schedule_by_id(db, schedule_id)
+        if not schedule:
+            logger.warning(f"Schedule with ID {schedule_id} not found")
+            raise HTTPException(status_code=404, detail="Schedule not found")
+        return format_response(data=schedule, message="Schedule retrieved successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while fetching schedule ID {schedule_id}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve schedule")
 
 @router.post("/", response_model=ScheduleResponseWrapper)
 def create_schedule(schedule: dict, db: Session = Depends(get_db)):
     try:
+        logger.info("Creating a new schedule")
         new_schedule = create_new_schedule(db, schedule)
         new_schedule_response = {
             "id": new_schedule.id,
@@ -74,17 +83,18 @@ def create_schedule(schedule: dict, db: Session = Depends(get_db)):
         }
         return format_response(data=new_schedule_response, message="Schedule created successfully", code=201)
     except Exception as e:
-        logger.error(f"Error while creating schedule: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception("Error while creating schedule")
+        raise HTTPException(status_code=500, detail="Failed to create schedule")
 
 @router.put("/{schedule_id}", response_model=ScheduleResponseWrapper)
 def update_schedule(schedule_id: int, schedule: dict, db: Session = Depends(get_db)):
     try:
+        logger.info(f"Updating schedule ID: {schedule_id}")
         updated_schedule = update_existing_schedule(db, schedule_id, schedule)
         if not updated_schedule:
-            logger.error(f"Schedule with ID {schedule_id} not found for update")
+            logger.warning(f"Schedule with ID {schedule_id} not found for update")
             raise HTTPException(status_code=404, detail="Schedule not found")
-        
+
         updated_schedule_response = {
             "id": updated_schedule.id,
             "student_subject": updated_schedule.student_subject,
@@ -95,19 +105,25 @@ def update_schedule(schedule_id: int, schedule: dict, db: Session = Depends(get_
             "start_time": updated_schedule.start_time.isoformat(),
             "end_time": updated_schedule.end_time.isoformat()
         }
-        
         return format_response(data=updated_schedule_response, message="Schedule updated successfully", code=200)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error while updating schedule with ID {schedule_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception(f"Error while updating schedule ID {schedule_id}")
+        raise HTTPException(status_code=500, detail="Failed to update schedule")
 
 @router.delete("/{schedule_id}", response_model=dict)
 def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Deleting schedule with ID: {schedule_id}")
-    deleted_schedule = delete_existing_schedule(db, schedule_id)
-    
-    if not deleted_schedule:
-        logger.error(f"Schedule with ID {schedule_id} not found for deletion")
-        raise HTTPException(status_code=404, detail="Schedule not found")
-    
-    return format_response(data=None, message="Schedule deleted successfully", code=200)
+    try:
+        logger.info(f"Deleting schedule ID: {schedule_id}")
+        deleted_schedule = delete_existing_schedule(db, schedule_id)
+        if not deleted_schedule:
+            logger.warning(f"Schedule with ID {schedule_id} not found for deletion")
+            raise HTTPException(status_code=404, detail="Schedule not found")
+        return format_response(data=None, message="Schedule deleted successfully", code=200)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.exception(f"Error while deleting schedule ID {schedule_id}")
+        raise HTTPException(status_code=500, detail="Failed to delete schedule")
+
