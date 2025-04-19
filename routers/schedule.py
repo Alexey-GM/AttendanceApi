@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from data.db.db import get_db
 from pydantic import BaseModel
 from typing import Optional, List
+from routers.dependencies import get_current_user, verify_lecturer
 from service.schedule_service import (
     fetch_all_schedules,
     fetch_schedule_by_id,
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 @router.get("/", response_model=SchedulesResponse)
-def read_schedules(db: Session = Depends(get_db)):
+def read_schedules(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info("Fetching all schedules")
         schedules = fetch_all_schedules(db)
@@ -52,7 +53,7 @@ def read_schedules(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve schedules")
 
 @router.get("/{schedule_id}", response_model=ScheduleResponseWrapper)
-def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
+def read_schedule(schedule_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info(f"Fetching schedule with ID: {schedule_id}")
         schedule = fetch_schedule_by_id(db, schedule_id)
@@ -67,7 +68,7 @@ def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve schedule")
 
 @router.post("/", response_model=ScheduleResponseWrapper)
-def create_schedule(schedule: dict, db: Session = Depends(get_db)):
+def create_schedule(schedule: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info("Creating a new schedule")
         new_schedule = create_new_schedule(db, schedule)
@@ -87,7 +88,7 @@ def create_schedule(schedule: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to create schedule")
 
 @router.put("/{schedule_id}", response_model=ScheduleResponseWrapper)
-def update_schedule(schedule_id: int, schedule: dict, db: Session = Depends(get_db)):
+def update_schedule(schedule_id: int, schedule: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Updating schedule ID: {schedule_id}")
         updated_schedule = update_existing_schedule(db, schedule_id, schedule)
@@ -113,7 +114,7 @@ def update_schedule(schedule_id: int, schedule: dict, db: Session = Depends(get_
         raise HTTPException(status_code=500, detail="Failed to update schedule")
 
 @router.delete("/{schedule_id}", response_model=dict)
-def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
+def delete_schedule(schedule_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Deleting schedule ID: {schedule_id}")
         deleted_schedule = delete_existing_schedule(db, schedule_id)

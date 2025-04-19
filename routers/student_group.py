@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from data.db.db import get_db
 from pydantic import BaseModel
 from typing import Optional, List
+from routers.dependencies import get_current_user, verify_lecturer
 from service.student_group_service import (
     fetch_all_student_groups,
     fetch_student_group_by_id,
@@ -38,7 +39,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/student_group", tags=["student_group"])
 
 @router.get("/", response_model=StudentGroupsResponse)
-def read_student_groups(db: Session = Depends(get_db)):
+def read_student_groups(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info("Fetching all student groups")
         groups = fetch_all_student_groups(db)
@@ -48,7 +49,7 @@ def read_student_groups(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve student groups")
 
 @router.get("/{group_id}", response_model=StudentGroupResponseWrapper)
-def read_student_group(group_id: int, db: Session = Depends(get_db)):
+def read_student_group(group_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info(f"Fetching student group with ID: {group_id}")
         group = fetch_student_group_by_id(db, group_id)
@@ -63,7 +64,7 @@ def read_student_group(group_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve student group")
 
 @router.post("/", response_model=StudentGroupResponseWrapper)
-def create_student_group(group: dict, db: Session = Depends(get_db)):
+def create_student_group(group: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info("Creating new student group")
         new_group = create_new_student_group(db, group)
@@ -81,7 +82,7 @@ def create_student_group(group: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to create student group")
 
 @router.put("/{group_id}", response_model=StudentGroupResponseWrapper)
-def update_student_group(group_id: int, group: dict, db: Session = Depends(get_db)):
+def update_student_group(group_id: int, group: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Updating student group ID: {group_id}")
         updated_group = update_existing_student_group(db, group_id, group)
@@ -104,7 +105,7 @@ def update_student_group(group_id: int, group: dict, db: Session = Depends(get_d
         raise HTTPException(status_code=500, detail="Failed to update student group")
 
 @router.delete("/{group_id}", response_model=dict)
-def delete_student_group(group_id: int, db: Session = Depends(get_db)):
+def delete_student_group(group_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Deleting student group ID: {group_id}")
         deleted_group = delete_existing_student_group(db, group_id)

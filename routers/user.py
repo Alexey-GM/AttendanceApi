@@ -34,14 +34,16 @@ class UserFIOUpdate(BaseModel):
 
 @router.post("/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
-    existing = login_user(db, user.login, user.password)
-    if existing:
-        raise HTTPException(status_code=400, detail="User already exists")
-    return format_response(
-        data=None,
-        message="User registered successfully",
-        code=201
-    )
+    try:
+        new_user = register_user(db, user.dict())
+        return format_response(
+            data={"id": new_user.id, "login": new_user.login},
+            message="User registered successfully",
+            code=201
+        )
+    except Exception as e:
+        print(f"Registration error: {e}")  # <-- временно для отладки
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

@@ -16,3 +16,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
 
     return payload  # {'sub': login, 'role': 'teacher', 'user_id': 1}
+
+def verify_lecturer(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "teacher":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers are allowed to perform this action"
+        )
+    return current_user

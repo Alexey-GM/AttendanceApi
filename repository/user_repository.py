@@ -5,10 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 def get_user_by_login(db: Session, login: str):
     try:
-        user = db.query(User).filter(User.login == login).first()
-        if not user:
-            raise ValueError(f"User with login {login} not found")
-        return user
+        return db.query(User).filter(User.login == login).first()
     except SQLAlchemyError as e:
         raise ValueError(f"Error fetching user: {str(e)}")
 

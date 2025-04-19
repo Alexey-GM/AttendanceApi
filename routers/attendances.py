@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from data.db.db import get_db
 from pydantic import BaseModel
 from typing import Optional, List
+from routers.dependencies import get_current_user, verify_lecturer
 from service.attendance_service import (
     fetch_all_attendance,
     fetch_attendance_by_id,
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
 @router.get("/", response_model=AttendancesResponse)
-def read_attendance(db: Session = Depends(get_db)):
+def read_attendance(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info("Fetching all attendance records")
         attendance_records = fetch_all_attendance(db)
@@ -49,7 +50,7 @@ def read_attendance(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to fetch attendance records")
 
 @router.get("/{attendance_id}", response_model=AttendanceResponseWrapper)
-def read_attendance_by_id(attendance_id: int, db: Session = Depends(get_db)):
+def read_attendance_by_id(attendance_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info(f"Fetching attendance record with ID: {attendance_id}")
         attendance = fetch_attendance_by_id(db, attendance_id)
@@ -63,7 +64,7 @@ def read_attendance_by_id(attendance_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to fetch attendance record")
 
 @router.post("/", response_model=AttendanceResponseWrapper)
-def create_attendance(attendance: dict, db: Session = Depends(get_db)):
+def create_attendance(attendance: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info("Creating new attendance record")
         new_attendance = create_new_attendance(db, attendance)
@@ -80,7 +81,7 @@ def create_attendance(attendance: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to create attendance record")
 
 @router.put("/{attendance_id}", response_model=AttendanceResponseWrapper)
-def update_attendance(attendance_id: int, attendance: dict, db: Session = Depends(get_db)):
+def update_attendance(attendance_id: int, attendance: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Updating attendance record with ID {attendance_id}")
         updated = update_existing_attendance(db, attendance_id, attendance)
@@ -101,7 +102,7 @@ def update_attendance(attendance_id: int, attendance: dict, db: Session = Depend
         raise HTTPException(status_code=500, detail="Failed to update attendance")
 
 @router.delete("/{attendance_id}", response_model=dict)
-def delete_attendance(attendance_id: int, db: Session = Depends(get_db)):
+def delete_attendance(attendance_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Deleting attendance record ID: {attendance_id}")
         deleted = delete_existing_attendance(db, attendance_id)

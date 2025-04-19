@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from data.db.db import get_db
 from pydantic import BaseModel
 from typing import Optional, List
+from routers.dependencies import get_current_user, verify_lecturer
 from service.student_service import (
     fetch_all_students,
     fetch_student_by_id,
@@ -40,7 +41,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/student", tags=["student"])
 
 @router.get("/", response_model=StudentsResponse)
-def read_students(db: Session = Depends(get_db)):
+def read_students(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info("Fetching all students")
         students = fetch_all_students(db)
@@ -50,7 +51,7 @@ def read_students(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve students")
 
 @router.get("/{student_id}", response_model=StudentResponseWrapper)
-def read_student(student_id: int, db: Session = Depends(get_db)):
+def read_student(student_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         logger.info(f"Fetching student with ID: {student_id}")
         student = fetch_student_by_id(db, student_id)
@@ -65,7 +66,7 @@ def read_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to retrieve student")
 
 @router.post("/", response_model=StudentResponseWrapper)
-def create_student(student: dict, db: Session = Depends(get_db)):
+def create_student(student: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info("Creating new student")
         new_student = create_new_student(db, student)
@@ -83,7 +84,7 @@ def create_student(student: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to create student")
 
 @router.put("/{student_id}", response_model=StudentResponseWrapper)
-def update_student(student_id: int, student: dict, db: Session = Depends(get_db)):
+def update_student(student_id: int, student: dict, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Updating student ID: {student_id}")
         updated_student = update_existing_student(db, student_id, student)
@@ -108,7 +109,7 @@ def update_student(student_id: int, student: dict, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail="Failed to update student")
 
 @router.delete("/{student_id}", response_model=dict)
-def delete_student(student_id: int, db: Session = Depends(get_db)):
+def delete_student(student_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_lecturer)):
     try:
         logger.info(f"Deleting student ID: {student_id}")
         deleted_student = delete_existing_student(db, student_id)
