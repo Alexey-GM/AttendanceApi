@@ -41,3 +41,6 @@ def delete_subject(db: Session, subject_id: int):
     db.delete(subject)
     db.commit()
     return subject
+
+def get_subjects_by_teacher_id(db: Session, teacher_id: int):
+    return db.query(Subject).filter(Subject.teacher_id == teacher_id).all()

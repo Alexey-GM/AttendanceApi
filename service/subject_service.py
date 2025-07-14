@@ -4,7 +4,8 @@ from repository.subject_repository import (
     get_subject_by_id,
     create_subject,
     update_subject,
-    delete_subject
+    delete_subject,
+    get_subjects_by_teacher_id
 )
 
 def fetch_all_subjects(db: Session):
@@ -13,7 +14,7 @@ def fetch_all_subjects(db: Session):
         {
             "id": subject.id,
             "name": subject.name,
-            "lecturer": subject.lecturer,
+            "lecturer": subject.teacher_id,
             "hours": subject.hours
         }
         for subject in subjects
@@ -26,7 +27,7 @@ def fetch_subject_by_id(db: Session, subject_id: int):
     return {
         "id": subject.id,
         "name": subject.name,
-        "lecturer": subject.lecturer, 
+        "lecturer": subject.teacher_id, 
         "hours": subject.hours
     }
 
@@ -38,3 +39,15 @@ def update_existing_subject(db: Session, subject_id: int, subject_data: dict):
 
 def delete_existing_subject(db: Session, subject_id: int):
     return delete_subject(db, subject_id)
+
+def fetch_subjects_by_teacher_id(db: Session, teacher_id: int):
+    subjects = get_subjects_by_teacher_id(db, teacher_id)
+    return [
+        {
+            "id": subject.id,
+            "name": subject.name,
+            "lecturer": subject.teacher_id,
+            "hours": subject.hours
+        }
+        for subject in subjects
+    ] if subjects else []

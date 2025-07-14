@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from data.db.db import Base
+from data.models.user import User  # Ensure User is imported for relationship
 
 class Subject(Base):
     __tablename__ = "subject"
