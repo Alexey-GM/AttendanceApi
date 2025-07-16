@@ -14,7 +14,7 @@ def fetch_all_subjects(db: Session):
         {
             "id": subject.id,
             "name": subject.name,
-            "lecturer": subject.lecturer,
+            "lecturer": subject.teacher_id,
             "hours": subject.hours
         }
         for subject in subjects
@@ -27,28 +27,27 @@ def fetch_subject_by_id(db: Session, subject_id: int):
     return {
         "id": subject.id,
         "name": subject.name,
-        "lecturer": subject.lecturer, 
+        "lecturer": subject.teacher_id, 
         "hours": subject.hours
     }
 
 def create_new_subject(db: Session, subject_data: dict):
-    try:
-        required_fields = ["name", "teacher_id"]
-        if not all(field in subject_data for field in required_fields):
-            raise ValueError("Missing required fields")
-            
-        return create_subject(db, subject_data)
-    except Exception as e:
-        raise ValueError(f"Service error creating subject: {str(e)}")
+    return create_subject(db, subject_data)
 
 def update_existing_subject(db: Session, subject_id: int, subject_data: dict):
-    try:
-        subject = update_subject(db, subject_id, subject_data)
-        if not subject:
-            raise ValueError(f"Subject with id {subject_id} not found")
-        return subject
-    except Exception as e:
-        raise ValueError(f"Service error updating subject: {str(e)}")
+    return update_subject(db, subject_id, subject_data)
 
 def delete_existing_subject(db: Session, subject_id: int):
     return delete_subject(db, subject_id)
+
+def fetch_subjects_by_teacher_id(db: Session, teacher_id: int):
+    subjects = get_subjects_by_teacher_id(db, teacher_id)
+    return [
+        {
+            "id": subject.id,
+            "name": subject.name,
+            "lecturer": subject.teacher_id,
+            "hours": subject.hours
+        }
+        for subject in subjects
+    ] if subjects else []

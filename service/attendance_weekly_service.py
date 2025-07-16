@@ -17,7 +17,6 @@ import calendar
 ##  return list(reversed(weeks))
 
 def get_last_4_weeks():
-    # Фиксированные недели февраля 2025
     return [
         (date(2025, 2, 3), date(2025, 2, 9)),
         (date(2025, 2, 10), date(2025, 2, 16)),

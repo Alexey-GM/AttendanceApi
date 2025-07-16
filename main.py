@@ -12,6 +12,8 @@ from routers import direction_attendance
 from routers import attendance_chart_routers
 from routers import attendance_groups_routers
 from routers import attendance_weekly_service
+from routers import student_attendance_router
+from routers import attendance_student_subject
 
 from fastapi.exceptions import HTTPException
 from fastapi import Request
@@ -62,3 +64,5 @@ app.include_router(direction_attendance.router)
 app.include_router(attendance_chart_routers.router)
 app.include_router(attendance_groups_routers.router)
 app.include_router(attendance_weekly_service.router)
+app.include_router(student_attendance_router.router)
+app.include_router(attendance_student_subject.router)
