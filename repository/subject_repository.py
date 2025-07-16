@@ -57,14 +57,9 @@ def update_subject(db: Session, subject_id: int, subject_data: dict):
         raise ValueError(f"Error updating subject: {str(e)}")
 
 def delete_subject(db: Session, subject_id: int):
-    try:
-        subject = db.query(Subject).filter(Subject.id == subject_id).first()
-        if not subject:
-            raise ValueError(f"Subject with id {subject_id} not found")
-        
-        db.delete(subject)
-        db.commit()
-        return subject
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise ValueError(f"Error deleting subject: {str(e)}")
+    subject = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not subject:
+        return None
+    db.delete(subject)
+    db.commit()
+    return subject

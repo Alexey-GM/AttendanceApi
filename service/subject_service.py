@@ -4,37 +4,32 @@ from repository.subject_repository import (
     get_subject_by_id,
     create_subject,
     update_subject,
-    delete_subject
+    delete_subject,
+    get_subjects_by_teacher_id
 )
 
 def fetch_all_subjects(db: Session):
-    try:
-        subjects = get_all_subjects(db)
-        return [
-            {
-                "id": subject.id,
-                "name": subject.name,
-                "lecturer": subject.teacher_id,
-                "hours": subject.hours
-            }
-            for subject in subjects
-        ] if subjects else []
-    except Exception as e:
-        raise ValueError(f"Service error fetching subjects: {str(e)}")
-
-def fetch_subject_by_id(db: Session, subject_id: int):
-    try:
-        subject = get_subject_by_id(db, subject_id)
-        if not subject:
-            raise ValueError(f"Subject with id {subject_id} not found")
-        return {
+    subjects = get_all_subjects(db)
+    return [
+        {
             "id": subject.id,
             "name": subject.name,
-            "lecturer": subject.teacher_id,
+            "lecturer": subject.lecturer,
             "hours": subject.hours
         }
-    except Exception as e:
-        raise ValueError(f"Service error fetching subject: {str(e)}")
+        for subject in subjects
+    ] if subjects else []
+
+def fetch_subject_by_id(db: Session, subject_id: int):
+    subject = get_subject_by_id(db, subject_id)
+    if not subject:
+        return None
+    return {
+        "id": subject.id,
+        "name": subject.name,
+        "lecturer": subject.lecturer, 
+        "hours": subject.hours
+    }
 
 def create_new_subject(db: Session, subject_data: dict):
     try:
@@ -56,10 +51,4 @@ def update_existing_subject(db: Session, subject_id: int, subject_data: dict):
         raise ValueError(f"Service error updating subject: {str(e)}")
 
 def delete_existing_subject(db: Session, subject_id: int):
-    try:
-        subject = delete_subject(db, subject_id)
-        if not subject:
-            raise ValueError(f"Subject with id {subject_id} not found")
-        return subject
-    except Exception as e:
-        raise ValueError(f"Service error deleting subject: {str(e)}")
+    return delete_subject(db, subject_id)

@@ -9,10 +9,12 @@ from service.subject_service import (
     fetch_subject_by_id,
     create_new_subject,
     update_existing_subject,
-    delete_existing_subject
+    delete_existing_subject,
+    fetch_subjects_by_teacher_id
 )
 from data.response import format_response
 import logging
+from routers.dependencies import get_current_user
 
 class SubjectResponse(BaseModel):
     id: int
@@ -39,14 +41,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 
 @router.get("/", response_model=SubjectsResponse)
-def read_subjects(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    try:
-        logger.info("Fetching all subjects")
-        subjects = fetch_all_subjects(db)
-        return format_response(data=subjects, message="Subjects retrieved successfully", code=200)
-    except Exception as e:
-        logger.exception("Error while fetching subjects")
-        raise HTTPException(status_code=500, detail="Failed to retrieve subjects")
+def read_subjects(db: Session = Depends(get_db)):
+    logger.info("Fetching all subjects")
+    subjects = fetch_all_subjects(db)
+    return format_response(data=subjects, message="Subjects retrieved successfully", code=200)
 
 @router.get("/{subject_id}", response_model=SubjectResponseWrapper)
 def read_subject(subject_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
