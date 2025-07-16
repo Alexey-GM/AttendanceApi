@@ -7,11 +7,37 @@ from routers import schedule
 from routers import students
 from routers import attendances
 
+from routers import risk_students
+from routers import direction_attendance
+from routers import attendance_chart_routers
+from routers import attendance_groups_routers
+from routers import attendance_weekly_service
+
 from fastapi.exceptions import HTTPException
 from fastapi import Request
 from data.response import format_response
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic_settings import BaseSettings
 
 app = FastAPI()
+
+class Settings(BaseSettings):
+    FRONT: str
+
+    class Config:
+        env_file = ".env" 
+
+        extra = "allow"  
+
+settings = Settings()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONT], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Создаём таблицы
 Base.metadata.create_all(bind=engine)
@@ -28,3 +54,11 @@ app.include_router(subjects.router)
 app.include_router(schedule.router)
 app.include_router(students.router)
 app.include_router(attendances.router)
+
+#Для фронта
+
+app.include_router(risk_students.router)
+app.include_router(direction_attendance.router)
+app.include_router(attendance_chart_routers.router)
+app.include_router(attendance_groups_routers.router)
+app.include_router(attendance_weekly_service.router)
