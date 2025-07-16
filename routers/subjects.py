@@ -18,7 +18,7 @@ from routers.dependencies import get_current_user
 class SubjectResponse(BaseModel):
     id: int
     name: str
-    lecturer: int 
+    teacher_id: int 
     hours: int
 
 class SubjectsResponse(BaseModel):
@@ -32,6 +32,9 @@ class SubjectResponseWrapper(BaseModel):
     message: str
     code: int
     data: Optional[SubjectResponse]
+
+class SubjectCreate(BaseModel):
+    name: str
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -60,19 +63,28 @@ def read_subject(subject_id: int, db: Session = Depends(get_db)):
     return format_response(data=subject, message="Subject retrieved successfully", code=200)
 
 @router.post("/", response_model=SubjectResponseWrapper)
-def create_subject(subject: dict, db: Session = Depends(get_db)):
+def create_subject(
+    subject: SubjectCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     try:
-        new_subject = create_new_subject(db, subject)
+        subject_data = {
+            "name": subject.name,
+            "teacher_id": current_user["user_id"],
+            "hours": 0
+        }
+        new_subject = create_new_subject(db, subject_data)
         new_subject_response = {
             "id": new_subject.id,
             "name": new_subject.name,
-            "lecturer": new_subject.lecturer,
+            "teacher_id": new_subject.teacher_id,
             "hours": new_subject.hours
         }
         return format_response(data=new_subject_response, message="Subject created successfully", code=201)
     except Exception as e:
         logger.error(f"Error while creating subject: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error: {e}")
 
 @router.put("/{subject_id}", response_model=SubjectResponseWrapper)
 def update_subject(subject_id: int, subject: dict, db: Session = Depends(get_db)):
@@ -85,7 +97,7 @@ def update_subject(subject_id: int, subject: dict, db: Session = Depends(get_db)
         updated_subject_response = {
             "id": updated_subject.id,
             "name": updated_subject.name,
-            "lecturer": updated_subject.lecturer,
+            "teacher_id": updated_subject.teacher_id,
             "hours": updated_subject.hours
         }
         

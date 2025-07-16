@@ -14,7 +14,7 @@ def fetch_all_subjects(db: Session):
         {
             "id": subject.id,
             "name": subject.name,
-            "lecturer": subject.teacher_id,
+            "teacher_id": subject.teacher_id,
             "hours": subject.hours
         }
         for subject in subjects
@@ -27,7 +27,7 @@ def fetch_subject_by_id(db: Session, subject_id: int):
     return {
         "id": subject.id,
         "name": subject.name,
-        "lecturer": subject.teacher_id, 
+        "teacher_id": subject.teacher_id, 
         "hours": subject.hours
     }
 
@@ -46,7 +46,7 @@ def fetch_subjects_by_teacher_id(db: Session, teacher_id: int):
         {
             "id": subject.id,
             "name": subject.name,
-            "lecturer": subject.teacher_id,
+            "teacher_id": subject.teacher_id,
             "hours": subject.hours
         }
         for subject in subjects

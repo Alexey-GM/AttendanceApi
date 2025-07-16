@@ -8,8 +8,10 @@ from service.schedule_service import (
     fetch_schedule_by_id,
     create_new_schedule,
     update_existing_schedule,
-    delete_existing_schedule
+    delete_existing_schedule,
+    fetch_schedules_by_subject_id
 )
+from data.db.schemas import ScheduleWithDetailsResponse, ScheduleWrapperResponse
 from data.response import format_response
 import logging
 
@@ -34,6 +36,12 @@ class ScheduleResponseWrapper(BaseModel):
     message: str
     code: int
     data: Optional[ScheduleResponse]
+
+class SchedulesWithDetailsResponse(BaseModel):
+    timestamp: str
+    message: str
+    code: int
+    data: List[ScheduleWithDetailsResponse]
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -111,3 +119,12 @@ def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Schedule not found")
     
     return format_response(data=None, message="Schedule deleted successfully", code=200)
+
+@router.get("/subject/{subject_id}", response_model=ScheduleWrapperResponse)
+def get_schedules_by_subject_id(subject_id: int, db: Session = Depends(get_db)):
+    try:
+        result = fetch_schedules_by_subject_id(db, subject_id)
+    except Exception as e:  
+        logger.error(f"Error fetching schedules for subject ID {subject_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return format_response(data=result, message="Schedules retrieved successfully", code=200)
