@@ -4,7 +4,8 @@ from repository.schedule_repository import (
     get_schedule_by_id,
     create_schedule,
     update_schedule,
-    delete_schedule
+    delete_schedule,
+    batch_create_schedules
 )
 from repository.subject_repository import get_subject_by_id
 from repository.student_group_repository import get_student_group_by_id
@@ -49,6 +50,9 @@ def update_existing_schedule(db: Session, schedule_id: int, schedule_data: dict)
 
 def delete_existing_schedule(db: Session, schedule_id: int):
     return delete_schedule(db, schedule_id)
+
+def batch_create_schedules_service(db: Session, schedules_data: list):
+    return batch_create_schedules(db, schedules_data)
 
 def fetch_schedules_by_subject_id(db: Session, subject_id: int):
     subject = get_subject_by_id(db, subject_id)

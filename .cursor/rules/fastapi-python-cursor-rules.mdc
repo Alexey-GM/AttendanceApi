@@ -1,0 +1,170 @@
+
+  Attendance API – Технические требования
+==================================================
+
+Ты эксперт в написании FastAPI rest приложений.
+  
+  Ключевые принципы
+  - Пишите краткие, технические ответы с точными примерами на Python.
+  - Используйте функциональное, декларативное программирование; по возможности избегайте классов.
+  - Предпочитайте итерацию и модулизацию дублированию кода.
+  - Используйте описательные имена переменных со вспомогательными глаголами (например, is_active, has_permission).
+  - Используйте строчные буквы с подчеркиванием для каталогов и файлов (например, routers/user_routes.py).
+  - Отдавайте предпочтение именованному экспорту для маршрутов и служебных функций.
+  - Используйте шаблон Receive an Object, Return an Object (RORO).
+  
+  Python/FastAPI
+  - Используйте def для чистых функций и async def для асинхронных операций.
+  - Используйте подсказки типов для всех сигнатур функций. Предпочитайте модели Pydantic, а не необработанные словари для проверки ввода.
+  - Структура файла: экспортируемый маршрутизатор, подмаршруты, утилиты, статическое содержимое, типы (модели, схемы).
+  - Избегайте лишних фигурных скобок в условных операторах.
+  - Для однострочных утверждений в условных операторах опускайте фигурные скобки.
+  - Используйте лаконичный однострочный синтаксис для простых условных операторов (например, if condition: do_something()).
+  
+
+Назначение
+----------
+Создание REST API-сервиса для управления посещаемостью студентов, с поддержкой:
+
+- JWT-авторизации;
+- модульной и функциональной архитектуры;
+- полной типизации;
+- единообразных API-ответов;
+- масштабируемости.
+
+Аутентификация и авторизация
+----------------------------
+- Используется JWT для всех маршрутов.
+- Эндпоинты регистрации и логина — единственные, не требующие токена.
+- Все остальные маршруты должны:
+  - проверять JWT на валидность и срок;
+  - при невалидном или просроченном токене — возвращать 403 Forbidden.
+  - иметь возможность получить данные пользователя из jwt токена
+
+Технологии
+----------
+- Python 3.11+
+- FastAPI
+- uvicorn
+- pydantic
+- SQLAlchemy
+- psycopg2
+- pydantic_settings
+- bcrypt
+- passlib
+- python-jose
+- python-multipart
+
+Архитектура
+-----------
+Структура проекта:
+
+project/
+├── app/
+│   ├── main.py
+│   ├── core/
+│   ├── api/
+│   │   ├── auth/
+│   │   ├── attendance/
+│   │   ├── students/
+│   ├── models/
+│   ├── schemas/
+│   ├── services/
+│   ├── db/
+│   ├── utils/
+│   └── middleware/
+├── alembic/
+├── tests/
+├── .env
+└── requirements.txt
+
+Стиль и принципы
+----------------
+- Все функции с type hints.
+- Использовать async def для I/O.
+- Модульная структура.
+- Возвращать ответы только через:
+
+  def format_response(data=None, message="Something went wrong...", code=400):
+      return JSONResponse(
+          content={
+              "timestamp": datetime.utcnow().isoformat(),
+              "message": message,
+              "code": code,
+              "data": data if data is not None else [],
+          },
+          status_code=code,
+      )
+
+- Абсолютно все ошибки отлавливаются и оборачиваются в format_response(..., code=400).
+- JWT проверяется на каждом защищённом маршруте. При истечении токена — 403.
+
+Пример авторизации
+------------------
+POST /api/auth/login
+Authorization: Bearer <JWT>
+
+Ответ:
+{
+  "timestamp": "2025-07-25T10:00:00Z",
+  "message": "Login successful",
+  "code": 200,
+  "data": { "access_token": "<JWT>", "token_type": "bearer" }
+}
+
+Формат всех ответов
+-------------------
+Успешно:
+{
+  "timestamp": "...",
+  "message": "Success",
+  "code": 200,
+  "data": [...]
+}
+
+Ошибка:
+{
+  "timestamp": "...",
+  "message": "Invalid token",
+  "code": 403,
+  "data": []
+}
+
+Поведение API
+-------------
+- Все запросы завершаются корректным JSON-ответом.
+- Все исключения отлавливаются и возвращаются в формате выше.
+- Без traceback'ов.
+
+Схема БД
+--------
+Таблицы:
+- faculty(id, short_name, full_name)
+- department(id, short_name, full_name, faculty_id)
+- lecturer(id, first_name, last_name, middle_name, login, password, department_id)
+- specialty(id, name)
+- track(id, name, specialty_id)
+- base_group(id, name, intake_year, course_number, track_id)
+- work_group(id, base_group_id, name, comment)
+- student(id, first_name, last_name, middle_name, date_birth, age, base_group_id)
+- academic_year(id, name, date_start, date_end, is_current)
+- group_enrollment(id, student_id, work_group_id, academic_year_id, enrollment_date, is_active)
+- discipline(id, name)
+- activity_type(id, short_name, full_name)
+- discipline_plan(id, lecturer_id, work_group_id, discipline_id, activity_type_id, academic_hours)
+- classroom(id, name)
+- attendance_session(id, discipline_plan_id, date, classroom_id)
+- attendance_status(id, name, comment)
+- attendance(id, student_id, attendance_session_id, attendance_status_id, attendance_timestamp, comment)
+
+Все внешние ключи настроены.
+
+Cursor-интеграция
+-----------------
+Проект создаётся для системы Cursor:
+- авторизация преподавателей;
+- фиксация посещаемости;
+- управление группами;
+- получение статистики и отчётов.
+
+  

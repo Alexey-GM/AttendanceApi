@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from typing import Optional, List
 
 class SubjectBase(BaseModel):
@@ -52,3 +52,15 @@ class ScheduleShortResponse(BaseModel):
 class ScheduleWrapperResponse(BaseModel):
     subject: SubjectResponse
     schedule: List[ScheduleShortResponse]
+
+class CreateSchedule(BaseModel):
+    subject_id: int
+    group_id: int
+    date: str
+    classroom: Optional[str] = None
+    type_class: Optional[str] = None
+    start_time: str
+    end_time: str
+
+class CreateScheduleList(RootModel[List[CreateSchedule]]):
+    pass

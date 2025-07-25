@@ -9,9 +9,10 @@ from service.schedule_service import (
     create_new_schedule,
     update_existing_schedule,
     delete_existing_schedule,
-    fetch_schedules_by_subject_id
+    fetch_schedules_by_subject_id,
+    batch_create_schedules_service
 )
-from data.db.schemas import ScheduleWithDetailsResponse, ScheduleWrapperResponse
+from data.db.schemas import ScheduleWithDetailsResponse, ScheduleWrapperResponse, CreateScheduleList
 from data.response import format_response
 import logging
 
@@ -67,22 +68,26 @@ def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
     return format_response(data=schedule, message="Schedule retrieved successfully", code=200)
 
 @router.post("/", response_model=ScheduleResponseWrapper)
-def create_schedule(schedule: dict, db: Session = Depends(get_db)):
+def create_schedule(new_schedules: CreateScheduleList, db: Session = Depends(get_db)):
     try:
-        new_schedule = create_new_schedule(db, schedule)
-        new_schedule_response = {
-            "id": new_schedule.id,
-            "student_subject": new_schedule.student_subject,
-            "group_id": new_schedule.group_id,
-            "date": new_schedule.date.isoformat(),
-            "classroom": new_schedule.classroom,
-            "type_class": new_schedule.type_class,
-            "start_time": new_schedule.start_time.isoformat(),
-            "end_time": new_schedule.end_time.isoformat()
-        }
-        return format_response(data=new_schedule_response, message="Schedule created successfully", code=201)
+        schedules_data = [item.model_dump() for item in new_schedules.root]
+        created = batch_create_schedules_service(db, schedules_data)
+        response_data = [
+            {
+                "id": s.id,
+                "student_subject": s.student_subject,
+                "group_id": s.group_id,
+                "date": s.date.isoformat(),
+                "classroom": s.classroom,
+                "type_class": s.type_class,
+                "start_time": s.start_time.isoformat(),
+                "end_time": s.end_time.isoformat()
+            }
+            for s in created
+        ]
+        return format_response(data=response_data, message="Schedules created successfully", code=201)
     except Exception as e:
-        logger.error(f"Error while creating schedule: {e}")
+        logger.error(f"Error while batch creating schedules: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/{schedule_id}", response_model=ScheduleResponseWrapper)
@@ -128,3 +133,17 @@ def get_schedules_by_subject_id(subject_id: int, db: Session = Depends(get_db)):
         logger.error(f"Error fetching schedules for subject ID {subject_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     return format_response(data=result, message="Schedules retrieved successfully", code=200)
+
+@router.get("/{subject_id}/{group_id}")
+def get_schedules_by_subject_and_group(subject_id: int, group_id: int, db: Session = Depends(get_db)):
+    try:
+        # Получаем все расписания по предмету
+        result = fetch_schedules_by_subject_id(db, subject_id)
+        if not result or "schedule" not in result:
+            return format_response(data=[], message="No schedules found", code=200)
+        # Фильтруем по группе
+        filtered = [s for s in result["schedule"] if s["group"]["id"] == group_id]
+        return format_response(data=filtered, message="Schedules retrieved successfully", code=200)
+    except Exception as e:
+        logger.error(f"Error fetching schedules for subject {subject_id} and group {group_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

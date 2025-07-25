@@ -39,3 +39,22 @@ def delete_schedule(db: Session, schedule_id: int):
     db.delete(schedule)
     db.commit()
     return schedule
+
+def batch_create_schedules(db: Session, schedules_data: list):
+    new_schedules = []
+    for schedule_data in schedules_data:
+        new_schedule = Schedule(
+            student_subject=schedule_data["subject_id"],
+            group_id=schedule_data["group_id"],
+            date=schedule_data["date"],
+            classroom=schedule_data.get("classroom"),
+            type_class=schedule_data.get("type_class"),
+            start_time=schedule_data["start_time"],
+            end_time=schedule_data["end_time"]
+        )
+        db.add(new_schedule)
+        new_schedules.append(new_schedule)
+    db.commit()
+    for schedule in new_schedules:
+        db.refresh(schedule)
+    return new_schedules
