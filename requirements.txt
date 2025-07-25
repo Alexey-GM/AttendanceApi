@@ -1,10 +1,9 @@
 fastapi
 uvicorn
 pydantic
+python-jose
 SQLAlchemy
 psycopg2
 pydantic_settings
-bcrypt
-passlib
-python-jose
-python-multipart
+passlib[bcrypt]
+asyncpg

@@ -142,7 +142,7 @@ Authorization: Bearer <JWT>
 - faculty(id, short_name, full_name)
 - department(id, short_name, full_name, faculty_id)
 - lecturer(id, first_name, last_name, middle_name, login, password, department_id)
-- specialty(id, name)
+- specialty(id, name, code)
 - track(id, name, specialty_id)
 - base_group(id, name, intake_year, course_number, track_id)
 - work_group(id, base_group_id, name, comment)
