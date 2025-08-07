@@ -1,1 +1,2 @@
-from .discipline_plan_routes import router as discipline_plan_router 
+from .discipline_plan_routes import router as discipline_plan_router
+from .attendance_session_routes import router as attendance_session_router 

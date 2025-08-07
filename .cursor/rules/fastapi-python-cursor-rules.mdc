@@ -146,7 +146,7 @@ Authorization: Bearer <JWT>
 - track(id, name, specialty_id)
 - base_group(id, name, intake_year, course_number, track_id)
 - work_group(id, base_group_id, name, comment)
-- student(id, first_name, last_name, middle_name, date_birth, age, base_group_id)
+- student(id, first_name, last_name, middle_name, date_birth, base_group_id)
 - academic_year(id, name, date_start, date_end, is_current)
 - group_enrollment(id, student_id, work_group_id, academic_year_id, enrollment_date, is_active)
 - discipline(id, name)
