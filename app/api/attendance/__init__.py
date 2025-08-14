@@ -1,2 +1,9 @@
 from .discipline_plan_routes import router as discipline_plan_router
-from .attendance_session_routes import router as attendance_session_router 
+from .attendance_session_routes import router as attendance_session_router
+from .course_stats_routes import router as course_stats_router
+from .direction_stats_routes import router as direction_stats_router
+from .students_risk_routes import router as students_risk_router
+from .group_attendance_routes import router as group_attendance_router
+from .four_weeks_routes import router as four_weeks_router
+from .student_attendance_routes import router as student_attendance_router
+from .general_attendance_routes import router as general_attendance_router 
