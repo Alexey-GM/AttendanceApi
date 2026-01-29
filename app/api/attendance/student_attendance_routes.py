@@ -50,3 +50,6 @@ async def get_student_attendance_statistics(
             message=str(e),
             code=400
         )
+
+
+

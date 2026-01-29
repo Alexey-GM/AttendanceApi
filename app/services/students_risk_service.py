@@ -119,3 +119,6 @@ async def get_students_at_risk(db: AsyncSession, weeks_back: int = 2, min_missed
         raise Exception(f"Error calculating students at risk: {str(e)}")
 
 
+
+
+

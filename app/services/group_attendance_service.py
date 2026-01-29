@@ -183,3 +183,6 @@ async def get_group_attendance_stats(
         
     except Exception as e:
         raise Exception(f"Error calculating group attendance stats: {str(e)}")
+
+
+

@@ -50,3 +50,6 @@ async def get_four_weeks_attendance_statistics(
             message=str(e),
             code=400
         )
+
+
+

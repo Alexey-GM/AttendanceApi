@@ -210,3 +210,6 @@ async def get_four_weeks_attendance_stats(
         
     except Exception as e:
         raise Exception(f"Error calculating four weeks attendance stats: {str(e)}")
+
+
+

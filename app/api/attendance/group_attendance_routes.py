@@ -51,3 +51,6 @@ async def get_group_attendance_statistics(
             message=str(e),
             code=400
         )
+
+
+

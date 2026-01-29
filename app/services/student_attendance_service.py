@@ -262,3 +262,6 @@ async def get_student_attendance_stats(
         
     except Exception as e:
         raise Exception(f"Error calculating student attendance stats: {str(e)}")
+
+
+
